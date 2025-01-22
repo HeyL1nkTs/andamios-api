@@ -209,8 +209,8 @@ async function obtenerSecciones(req, res) {
                 })
                 break;
             case 'C':
-                
-            console.log('entro a C');
+
+                console.log('entro a C');
                 const seccionesC = await Secciones.findAll({ where: { categoria: id } });
 
                 const elementosConImagenes = [];
@@ -224,19 +224,19 @@ async function obtenerSecciones(req, res) {
                         btn_contacto: seccion.btn_contacto,
                         imagen_inicio: seccion.imagen_inicio
                     };
-                
+
                     // Buscamos las imágenes relacionadas con esta sección
                     const imagenes = await Imagenes_Seccion.findAll({ where: { id_seccion: seccion.id } }).catch((err) => {
                         console.log(err);
                     })
-                
+
                     // Añadimos las imágenes al objeto elemento
                     elemento.imagenes = imagenes;
-                
+
                     // Agregamos el elemento a la lista
                     elementosConImagenes.push(elemento);
                 }
-                
+
                 res.status(200).send(elementosConImagenes);
 
                 break;
@@ -255,13 +255,13 @@ async function obtenerSecciones(req, res) {
                         btn_pdf: seccion.btn_pdf,
                         imagen_inicio: seccion.imagen_inicio
                     };
-                
+
                     // Buscamos los archivos relacionados con esta sección
                     const archivos = await Archivos_Seccion.findAll({ where: { id_elemento: seccion.id } });
-                
+
                     // Añadimos los archivos al objeto elemento
                     elemento.archivos = archivos;
-                
+
                     // Agregamos el elemento a la lista
                     elementosConArchivos.push(elemento);
                 }
@@ -279,29 +279,71 @@ async function obtenerSecciones(req, res) {
 
 }
 
-async function obtenerImagenSucursal(req,res){
-    try{
+async function obtenerImagenSucursal(req, res) {
+    try {
 
-        const {division} = req.params
+        const { division } = req.params
 
-        const imagenes = await Imagenes_Sucursales.findOne({where:{division:division}})
+        const imagenes = await Imagenes_Sucursales.findOne({ where: { division: division } })
         res.status(200).send(imagenes)
 
-    }catch(err){
-        res.status(500).json({message: "error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
-async function obtenerSucursales(req,res){
-    try{
-        const {division} = req.params
+async function obtenerSucursales(req, res) {
+    try {
+        const { division } = req.params
 
-        const sucursales = await Sucursales.findAll({where:{division:division}})
+        const sucursales = await Sucursales.findAll({ where: { division: division } })
 
         res.status(200).send(sucursales)
 
-    }catch(err){
-        res.status(500).json({message: "error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
+    }
+}
+
+/*
+* @description Obtiene la información de una sección
+* @param {Request} req (url)
+* @param {Response} res (status, message)
+*/
+async function getSeccion(req, res) {
+    try {
+        const { url } = req.params;
+        const row = await Secciones.findOne({ where: { url } });
+        if (!row) {
+            return res.status(404).send({ error: 'Sección no encontrada' });
+        }
+        // Obtener imágenes asociadas
+        const imgs = await Imagenes_Seccion.findAll({ where: { id_seccion: row.id } });
+        console.log(imgs);
+        const processedImgs = imgs.map(img => ({
+            ...img.toJSON(),
+            img: img.file.toString("base64")
+        }));
+        // Obtener archivo PDF asociado
+        const pdfRow = await Archivos_Seccion.findOne({ where: { id_elemento: row.id } });
+        const pdf = pdfRow ? pdfRow.file.toString("base64") : null;
+        // Construir el resultado
+        const result = {
+            id: row.id,
+            nombre: row.nombre,
+            descripcion: row.descripcion,
+            btn_contacto: row.btn_contacto,
+            btn_pdf: row.btn_pdf,
+            images: processedImgs,
+            imagen_inicio: row.imagen_inicio,
+            pdf: pdf
+        };
+
+        // Enviar respuesta
+        res.status(200).send(result);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('error: ' + error)
     }
 }
 
@@ -316,5 +358,6 @@ module.exports = {
     obtenerTipoCategoria,
     obtenerSecciones,
     obtenerImagenSucursal,
-    obtenerSucursales
+    obtenerSucursales,
+    getSeccion
 }
