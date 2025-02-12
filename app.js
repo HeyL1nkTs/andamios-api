@@ -2,6 +2,7 @@ const express = require('express');
 const app = express()
 const cors = require('cors')
 const db = require("./database/db")
+const seed = require("./database/seed")
 require('dotenv').config()
 
 //rutas
@@ -15,6 +16,8 @@ db.checkDatabaseConnection().then(() => {
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true
     }))
+
+    seed.seedAdminUser();
 
     app.use('/general', general);
     app.use('/andamios', andamios);

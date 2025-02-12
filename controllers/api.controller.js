@@ -10,6 +10,8 @@ const Imagenes_Seccion = require("../models/general/imagenes_seccion")
 const Archivos_Seccion = require("../models/general/archivos_seccion")
 const Imagenes_Sucursales = require("../models/general/imagenes_sucursales")
 const Sucursales = require("../models/general/sucursales")
+const Imagenes_Subseccion = require("../models/general/imagenes_subseccion")
+const Archivos_Subseccion = require("../models/general/archivos_subseccion")
 
 async function obtenerArchivo(req, res) {
     const { origen } = req.params
@@ -61,6 +63,11 @@ async function crearSolicitud(req, res) {
     }
 }
 
+/**
+ * @description Obtiene la barra de navegacion con sus categorias, secciones y subsecciones
+ * @param {Request} req (area)
+ * @param {Response} res (status, message)
+ */
 async function navbar(req, res) {
     try {
 
@@ -90,10 +97,13 @@ async function navbar(req, res) {
     }
 }
 
+/**
+ * @description Obtiene las secciones y subsecciones de una categoría
+ */
 async function obtenerSeccionesYSubsecciones(idCategoria) {
     const secciones = await Secciones.findAll({
         where: { categoria: idCategoria },
-        attributes: ['id', 'nombre', 'url'],
+        attributes: ['id', 'nombre', 'url', 'isTitle'],
     });
 
     const seccionesConSubsecciones = [];
@@ -108,6 +118,7 @@ async function obtenerSeccionesYSubsecciones(idCategoria) {
             id: seccion.id,
             titulo: seccion.nombre,
             url: seccion.url,
+            isTitle: seccion.isTitle,
             subsecciones: subsecciones,
         });
     }
@@ -137,6 +148,11 @@ async function obtenerAnuncio(req, res) {
     }
 }
 
+/**
+ * @description Obtiene las categorías y secciones de una área para la página de inicio
+ * @param {Request} req (area)
+ * @param {Response} res (status, message)
+ */
 async function obtenerInicio(req, res) {
     try {
         const { area } = req.params
@@ -150,7 +166,7 @@ async function obtenerInicio(req, res) {
         for (const categoria of categorias) {
             const secciones = await Secciones.findAll({
                 where: { categoria: categoria.id, mostrar_inicio: true },
-                attributes: ['id', 'nombre', 'url', 'imagen_inicio'],
+                attributes: ['id', 'nombre', 'url', 'imagen_inicio', 'isTitle'],
             });
 
             inicio.push({
@@ -186,6 +202,11 @@ async function obtenerTipoCategoria(req, res) {
 
 }
 
+/**
+ * @description Obtiene las secciones de una categoría por tipo para la pagina de inicio
+ * @param {Request} req (id, tipo)
+ * @param {Response} res (status, message)
+ */
 async function obtenerSecciones(req, res) {
     try {
         const { id, tipo } = req.body
@@ -195,7 +216,7 @@ async function obtenerSecciones(req, res) {
             case 'A': //done
                 await Secciones.findAll({
                     where: { categoria: id },
-                    attributes: ['id', 'nombre', 'url', 'imagen_inicio'],
+                    attributes: ['id', 'nombre', 'url', 'imagen_inicio', 'isTitle'],
                 }).then((secciones) => {
                     res.status(200).send(secciones)
                 })
@@ -203,7 +224,7 @@ async function obtenerSecciones(req, res) {
             case 'B':
                 await Secciones.findAll({
                     where: { categoria: id },
-                    attributes: ['id', 'nombre', 'descripcion', 'imagen_inicio'],
+                    attributes: ['id', 'nombre', 'descripcion', 'imagen_inicio', 'isTitle'],
                 }).then((secciones) => {
                     res.status(200).send(secciones)
                 })
@@ -222,7 +243,8 @@ async function obtenerSecciones(req, res) {
                         nombre: seccion.nombre,
                         descripcion: seccion.descripcion,
                         btn_contacto: seccion.btn_contacto,
-                        imagen_inicio: seccion.imagen_inicio
+                        imagen_inicio: seccion.imagen_inicio,
+                        isTitle: seccion.isTitle
                     };
 
                     // Buscamos las imágenes relacionadas con esta sección
@@ -253,7 +275,8 @@ async function obtenerSecciones(req, res) {
                         nombre: seccion.nombre,
                         descripcion: seccion.descripcion,
                         btn_pdf: seccion.btn_pdf,
-                        imagen_inicio: seccion.imagen_inicio
+                        imagen_inicio: seccion.imagen_inicio,
+                        isTitle: seccion.isTitle
                     };
 
                     // Buscamos los archivos relacionados con esta sección
@@ -336,6 +359,48 @@ async function getSeccion(req, res) {
             btn_pdf: row.btn_pdf,
             images: processedImgs,
             imagen_inicio: row.imagen_inicio,
+            pdf: pdf,
+            isTitle: row.isTitle
+        };
+
+        // Enviar respuesta
+        res.status(200).send(result);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('error: ' + error)
+    }
+}
+
+/**
+ * @description Obtiene la información de una subsección
+ * @param {Request} req (url)
+ * @param {Response} res (status, message)
+ */
+async function getSubseccion(req, res) {
+    try {
+        const { url } = req.params;
+        const row = await Subsecciones.findOne({ where: { url } });
+        if (!row) {
+            return res.status(404).send({ error: 'Subsección no encontrada' });
+        }
+        // Obtener imágenes asociadas
+        const imgs = await Imagenes_Subseccion.findAll({ where: { id_subseccion: row.id } });
+        const processedImgs = imgs.map(img => ({
+            ...img.toJSON(),
+            img: img.file.toString("base64")
+        }));
+        // Obtener archivo PDF asociado
+        const pdfRow = await Archivos_Subseccion.findOne({ where: { id_elemento: row.id } });
+        const pdf = pdfRow ? pdfRow.file.toString("base64") : null;
+        // Construir el resultado
+        const result = {
+            id: row.id,
+            nombre: row.nombre,
+            descripcion: row.descripcion,
+            btn_contacto: row.btn_contacto,
+            btn_pdf: row.btn_pdf,
+            images: processedImgs,
+            imagen_inicio: row.imagen_inicio,
             pdf: pdf
         };
 
@@ -359,5 +424,6 @@ module.exports = {
     obtenerSecciones,
     obtenerImagenSucursal,
     obtenerSucursales,
-    getSeccion
+    getSeccion,
+    getSubseccion
 }
