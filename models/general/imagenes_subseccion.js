@@ -38,11 +38,11 @@ Subseccion.hasMany(Imagenes_Subseccion, {
 });
 
 Imagenes_Subseccion.belongsTo(Subseccion, {
-    foreignKey: 'id_subseccion', 
+    foreignKey: 'id_subseccion',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
 });
 
-    
+
 
 module.exports = Imagenes_Subseccion

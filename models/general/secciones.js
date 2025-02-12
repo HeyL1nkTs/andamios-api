@@ -21,6 +21,10 @@ const Secciones = db.sequelize.define('Secciones', {
         type: DataTypes.TEXT('long'),
         allowNull: false,
     },
+    isTitle: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+    },
     //Para tipo A y B
     mostrar_inicio: { //muestra inicio
         type: DataTypes.BOOLEAN,
@@ -51,16 +55,16 @@ const Secciones = db.sequelize.define('Secciones', {
     timestamps: false
 })
 
-Categorias.hasMany(Secciones, { 
+Categorias.hasMany(Secciones, {
     foreignKey: 'categoria',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
- });
+});
 
-Secciones.belongsTo(Categorias, { 
-    foreignKey: 'categoria', 
-    onUpdate: 'CASCADE', 
-    onDelete: 'CASCADE' 
+Secciones.belongsTo(Categorias, {
+    foreignKey: 'categoria',
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
 });
 
 module.exports = Secciones

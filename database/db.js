@@ -4,9 +4,13 @@ require('dotenv').config()
 const sequelize = new Sequelize(process.env.DB, process.env.USER, '', {
     host: process.env.HOST,
     dialect: process.env.DIALECT, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
-    timezone: 'America/Mexico_City'
+    timezone: process.env.TIMEZONE /* 'America/Mexico_City' */
 });
 
+/**
+ * @description Verifica la conexión a la base de datos y sincroniza los modelos
+ * @returns {Promise<void>}
+ */
 async function checkDatabaseConnection() {
     try {
         await sequelize.authenticate();
@@ -19,13 +23,12 @@ async function checkDatabaseConnection() {
 
     try {
         await sequelize.sync();
-        
 
         console.log('Sincronización de la base de datos realizada correctamente.');
     } catch (error) {
         console.error('Error al sincronizar la base de datos:', error.parent.sqlMessage);
         process.exit(1);
-    } 
+    }
 }
 
 module.exports = {

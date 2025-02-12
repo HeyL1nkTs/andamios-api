@@ -21,17 +21,21 @@ async function crearCategoria(req, res) {
         const { nombre, tipo, url, area, mostrar_inicio } = req.body
         const file = req.files[0]
 
-        if(file){
-            await Categorias.create({ nombre: nombre, tipo: tipo, url: url, area: area, 
+        if (file) {
+            await Categorias.create({
+                nombre: nombre, tipo: tipo, url: url, area: area,
                 mostrar_inicio: mostrar_inicio,
-                banner: "data:image/*;base64,"+ file.buffer.toString("base64")  }).then(() => {
+                banner: "data:image/*;base64," + file.buffer.toString("base64")
+            }).then(() => {
                 res.status(200).json({ message: "Categoria creada" })
             }).catch((error) => {
                 res.status(500).json({ message: "Error al crear categoria: " + error })
             })
-        }else{
-            await Categorias.create({ nombre: nombre, tipo: tipo, url: url, area: area, 
-                mostrar_inicio: mostrar_inicio }).then(() => {
+        } else {
+            await Categorias.create({
+                nombre: nombre, tipo: tipo, url: url, area: area,
+                mostrar_inicio: mostrar_inicio
+            }).then(() => {
                 res.status(200).json({ message: "Categoria creada" })
             }).catch((error) => {
                 res.status(500).json({ message: "Error al crear categoria: " + error })
@@ -63,17 +67,21 @@ async function modificarCategoria(req, res) {
         const { id, nombre, tipo, url, area, mostrar_inicio } = req.body
         const file = req.files[0]
 
-        if(file){
-            await Categorias.update({ nombre: nombre, tipo: tipo, url: url, area: area, 
+        if (file) {
+            await Categorias.update({
+                nombre: nombre, tipo: tipo, url: url, area: area,
                 mostrar_inicio: mostrar_inicio,
-                banner: "data:image/*;base64,"+ file.buffer.toString("base64") }, { where: { id: id } }).then(() => {
+                banner: "data:image/*;base64," + file.buffer.toString("base64")
+            }, { where: { id: id } }).then(() => {
                 res.status(200).json({ message: "Categoria modificada" })
             }).catch((error) => {
                 res.status(500).json({ message: "Error al modificar categoria: " + error })
             })
-        }else{
-            await Categorias.update({ nombre: nombre, tipo: tipo, url: url, area: area, 
-                mostrar_inicio: mostrar_inicio, banner: null}, { where: { id: id } }).then(() => {
+        } else {
+            await Categorias.update({
+                nombre: nombre, tipo: tipo, url: url, area: area,
+                mostrar_inicio: mostrar_inicio, banner: null
+            }, { where: { id: id } }).then(() => {
                 res.status(200).json({ message: "Categoria modificada" })
             }).catch((error) => {
                 res.status(500).json({ message: "Error al modificar categoria: " + error })
@@ -105,6 +113,12 @@ Se tienen 3 solicitudes, por parte del cliente
 Se crea la seccion luego se agrega imagenes a la tabla imagenes
 Finalmente si hay pdf se agrega a la tabla pdf
 */
+
+/**
+ * @description Crea una seccion dependiendo el tipo de categoria
+ * @param {Object} req (nombre, url, descripcion, mostrar_inicio, imagen_inicio, btn_pdf, btn_contacto, categoria, tipo, isTitle)
+ * @param {Object} res
+ */
 async function crearSeccion(req, res) { //requiere id de categoria, tipo de la categoria, regresa el id de la seccion
     try {
         //Aqui se debe hacer la diferencia entra agregar un tipo A, B , C o D
@@ -115,7 +129,7 @@ async function crearSeccion(req, res) { //requiere id de categoria, tipo de la c
         //D Blog -> id, nombre, url, descripcion,img_inicio btn_contacto
         //D tiene otro servicio para cargar un pdf
 
-        const { nombre, url, descripcion, mostrar_inicio, btn_pdf, btn_contacto, categoria, tipo } = req.body
+        const { nombre, url, descripcion, mostrar_inicio, btn_pdf, btn_contacto, categoria, tipo, isTitle } = req.body
         const imagen_inicio = req.files[0]
 
         let seccion;
@@ -125,17 +139,20 @@ async function crearSeccion(req, res) { //requiere id de categoria, tipo de la c
                 seccion = await Secciones.create({
                     nombre: nombre, url: url,
                     descripcion: descripcion,
-                    mostrar_inicio: mostrar_inicio, imagen_inicio: "data:image/*;base64,"+imagen_inicio.buffer.toString('base64'),
+                    mostrar_inicio: mostrar_inicio,
+                    imagen_inicio: "data:image/*;base64," + imagen_inicio.buffer.toString('base64'),
                     btn_pdf: btn_pdf, btn_contacto: btn_contacto,
-                    categoria: categoria
+                    categoria: categoria,
+                    isTitle: isTitle
                 })
                 break;
             case "B":
                 seccion = await Secciones.create({
                     nombre: nombre, url: url,
                     descripcion: descripcion,
-                    imagen_inicio: "data:image/*;base64,"+imagen_inicio.buffer.toString('base64'),
-                    categoria: categoria
+                    imagen_inicio: "data:image/*;base64," + imagen_inicio.buffer.toString('base64'),
+                    categoria: categoria,
+                    isTitle: isTitle
                 })
                 break;
             case "C":
@@ -143,15 +160,17 @@ async function crearSeccion(req, res) { //requiere id de categoria, tipo de la c
                     nombre: nombre, url: url,
                     descripcion: descripcion,
                     btn_contacto: btn_contacto,
-                    categoria: categoria
+                    categoria: categoria,
+                    isTitle: isTitle
                 })
                 break;
             case "D":
                 seccion = await Secciones.create({
                     nombre: nombre, url: url,
-                    descripcion: descripcion, btn_pdf:btn_pdf,
-                    imagen_inicio: "data:image/*;base64,"+imagen_inicio.buffer.toString('base64'),
-                    categoria: categoria
+                    descripcion: descripcion, btn_pdf: btn_pdf,
+                    imagen_inicio: "data:image/*;base64," + imagen_inicio.buffer.toString('base64'),
+                    categoria: categoria,
+                    isTitle: isTitle
                 })
                 break;
             default:
@@ -165,33 +184,37 @@ async function crearSeccion(req, res) { //requiere id de categoria, tipo de la c
         res.status(500).json({ message: "Error de endpoint: " + error })
     }
 }
-
-async function obtenerSeccion(req,res){ //obtiene seccion por id
+/**
+ * @description Obtiene una seccion por id
+ * @param {Object} req (id)
+ * @param {Object} res
+ */
+async function obtenerSeccion(req, res) { //obtiene seccion por id
     //combina los archivos y obtiene las imagenes
 
-    try{
+    try {
 
-        const {id} = req.params
+        const { id } = req.params
 
-        let data ;
-        let pdf ;
+        let data;
+        let pdf;
         let imagenes = null
         console.log(id)
 
         const seccion = await Secciones.findOne(
-            {where:{id:id}}
+            { where: { id: id } }
         )
 
-        if(seccion){
+        if (seccion) {
             imagenes = await Imagenes_Seccion.findAll(
-                {where:{id_seccion: seccion.id}}
+                { where: { id_seccion: seccion.id } }
             )
-            
-            if(seccion.btn_pdf){
+
+            if (seccion.btn_pdf) {
                 pdf = await Archivos_Seccion.findOne(
-                    {where:{id_elemento:seccion.id}}
+                    { where: { id_elemento: seccion.id } }
                 )
-            }else{
+            } else {
                 console.log("No pdf init")
             }
         }
@@ -207,41 +230,53 @@ async function obtenerSeccion(req,res){ //obtiene seccion por id
             categoria: seccion.categoria,
             pdf: pdf,
             imagen_inicio: seccion.imagen_inicio,
-            imagenes: imagenes
+            imagenes: imagenes,
+            isTitle: seccion.isTitle
         }
 
         res.status(200).send(data)
 
-    }catch(err){
-        res.status(500).json({message: "Error: "+err})
+    } catch (err) {
+        res.status(500).json({ message: "Error: " + err })
     }
 }
 
+/**
+ * @description Modifica una seccion con id
+ * @param {Object} req (id, nombre, url, descripcion, mostrar_inicio, imagen_inicio, btn_pdf, btn_contacto, isTitle)
+ * @param {Object} res
+ */
 async function modificarSeccion(req, res) {
     try {
-        const { id, nombre, url, descripcion, mostrar_inicio, btn_pdf, btn_contacto } = req.body
+        const { id, nombre, url, descripcion, mostrar_inicio, btn_pdf, btn_contacto, isTitle } = req.body
 
         const file = req.files[0]
 
-        if(file){
+        if (file) {
             console.log("nueva imagen")
-            await Secciones.update({ nombre: nombre, 
-                url: url, descripcion: descripcion, 
-                mostrar_inicio: mostrar_inicio, 
-                imagen_inicio:  "data:image/*;base64,"+file.buffer.toString('base64'),
-                btn_pdf: btn_pdf, 
-                btn_contacto: btn_contacto }, { where: { id: id } }).then(() => {
+            await Secciones.update({
+                nombre: nombre,
+                url: url, descripcion: descripcion,
+                mostrar_inicio: mostrar_inicio,
+                imagen_inicio: "data:image/*;base64," + file.buffer.toString('base64'),
+                btn_pdf: btn_pdf,
+                btn_contacto: btn_contacto,
+                isTitle: isTitle
+            }, { where: { id: id } }).then(() => {
                 res.status(200).json({ message: "Seccion modificada" })
             }).catch((error) => {
                 res.status(500).json({ message: "Error al modificar seccion: " + error })
             })
-        }else{
+        } else {
             console.log("no modifica la imagen")
-            await Secciones.update({ nombre: nombre, 
-                url: url, descripcion: descripcion, 
-                mostrar_inicio: mostrar_inicio, 
-                btn_pdf: btn_pdf, 
-                btn_contacto: btn_contacto }, { where: { id: id } }).then(() => {
+            await Secciones.update({
+                nombre: nombre,
+                url: url, descripcion: descripcion,
+                mostrar_inicio: mostrar_inicio,
+                btn_pdf: btn_pdf,
+                btn_contacto: btn_contacto,
+                isTitle: isTitle
+            }, { where: { id: id } }).then(() => {
                 res.status(200).json({ message: "Seccion modificada" })
             }).catch((error) => {
                 res.status(500).json({ message: "Error al modificar seccion: " + error })
@@ -254,6 +289,11 @@ async function modificarSeccion(req, res) {
 
 }
 
+/**
+ * @description Elimina una seccion por id
+ * @param {Object} req (id)
+ * @param {Object} res
+ */
 async function eliminarSeccion(req, res) {
     try {
         const { id } = req.params
@@ -280,7 +320,7 @@ async function crearSubseccion(req, res) { //requiere id de seccion, solo catego
         })
 
     } catch (error) {
-        res.status(500).json({ message: "Error de endpoint: "+error })
+        res.status(500).json({ message: "Error de endpoint: " + error })
     }
 }
 
@@ -312,12 +352,12 @@ async function obtenerSubseccion(req, res) { //obtiene subseccion por id
         }
 
         data = {
-            id:subseccion.id,
+            id: subseccion.id,
             nombre: subseccion.nombre,
             url: subseccion.url,
             descripcion: subseccion.descripcion,
-            btn_pdf:subseccion.btn_pdf,
-            btn_contacto:subseccion.btn_contacto,
+            btn_pdf: subseccion.btn_pdf,
+            btn_contacto: subseccion.btn_contacto,
             pdf: pdf,
             imagenes: imagenes
         }
@@ -368,7 +408,7 @@ async function agregarImagenASeccion(req, res) {// requiere el id de la seccion
 
         await files.forEach(async (file, index) => {
             if (ImageValidator.verificarImagen(file)) {
-                await Imagenes_Seccion.create({ nombre: file.fieldname, file: "data:image/*;base64,"+file.buffer.toString('base64'), id_seccion: id_seccion }).then(() => {
+                await Imagenes_Seccion.create({ nombre: file.fieldname, file: "data:image/*;base64," + file.buffer.toString('base64'), id_seccion: id_seccion }).then(() => {
                     //res.status(200).json({ message: "Imagen agregada" })
                     errors.push({ message: "Imagen " + index + " agregada" })
                 }).catch((error) => {
@@ -408,16 +448,16 @@ async function obtenerImagenesSeccion(req, res) {
 }
 
 async function modificarImagenSecccion(req, res) {
-    try{
-        const {id} = req.body
+    try {
+        const { id } = req.body
         const file = req.files[0]
 
-        await Imagenes_Seccion.update({nombre:file.fieldname, file: "data:image/*;base64,"+file.buffer.toString('base64')}, {where:{id:id}}).then(()=>{
-            res.status(200).json({message: "Imagen modificada"})
-        }).catch((error)=>{
-            res.status(500).json({message: "Error al modificar imagen: "+error})
+        await Imagenes_Seccion.update({ nombre: file.fieldname, file: "data:image/*;base64," + file.buffer.toString('base64') }, { where: { id: id } }).then(() => {
+            res.status(200).json({ message: "Imagen modificada" })
+        }).catch((error) => {
+            res.status(500).json({ message: "Error al modificar imagen: " + error })
         })
-    }catch(error){
+    } catch (error) {
         res.status(500).json({ message: "Error de endpoint" })
     }
 }
@@ -513,7 +553,7 @@ async function agregarImagenASubseccion(req, res) { //requiere el id de la subse
 
         await files.forEach(async (file, index) => {
             if (ImageValidator.verificarImagen(file)) {
-                await Imagenes_Subseccion.create({ nombre: file.fieldname, file: "data:image/*;base64,"+file.buffer.toString('base64'), id_subseccion: id_subseccion }).then(() => {
+                await Imagenes_Subseccion.create({ nombre: file.fieldname, file: "data:image/*;base64," + file.buffer.toString('base64'), id_subseccion: id_subseccion }).then(() => {
                     //res.status(200).json({ message: "Imagen agregada" })
                     errors.push({ message: "Imagen " + index + " agregada" })
                 }).catch((error) => {
@@ -554,16 +594,16 @@ async function obtenerImagenesSubseccion(req, res) {
 }
 
 async function modificarImagenSubseccion(req, res) {
-    try{
-        const {id} = req.body
+    try {
+        const { id } = req.body
         const file = req.files[0]
 
-        await Imagenes_Subseccion.update({nombre:file.fieldname, file:  "data:image/*;base64,"+file.buffer.toString('base64')}, {where:{id:id}}).then(()=>{
-            res.status(200).json({message: "Imagen modificada"})
-        }).catch((error)=>{
-            res.status(500).json({message: "Error al modificar imagen: "+error})
+        await Imagenes_Subseccion.update({ nombre: file.fieldname, file: "data:image/*;base64," + file.buffer.toString('base64') }, { where: { id: id } }).then(() => {
+            res.status(200).json({ message: "Imagen modificada" })
+        }).catch((error) => {
+            res.status(500).json({ message: "Error al modificar imagen: " + error })
         })
-    }catch(error){
+    } catch (error) {
         res.status(500).json({ message: "Error de endpoint" })
     }
 }
@@ -670,12 +710,12 @@ async function obtenerCategorias(req, res) {
 async function navbar(req, res) {
     try {
 
-        const {area} = req.params
+        const { area } = req.params
 
         const categorias = await Categorias.findAll({
-            attributes: ['id', 'nombre' ,'tipo'],
+            attributes: ['id', 'nombre', 'tipo'],
             where: { area: area },
-          });
+        });
         const navbar = [];
 
         for (const categoria of categorias) {
@@ -721,47 +761,47 @@ async function obtenerSeccionesYSubsecciones(idCategoria) {
 
 //CONTACTO  
 async function obtenerSolicitudesContacto(req, res) {
-    try{
-        const {area} = req.params
+    try {
+        const { area } = req.params
         console.log(area)
-        await Contactos.findAll({where:{area:area}}).then((rows)=>{
+        await Contactos.findAll({ where: { area: area } }).then((rows) => {
             const solicitudes = rows.map(soli => ({
-                id:soli.id,
-                nombre:soli.nombre,
-                empresa:soli.empresa,
-                opcion:soli.opcion,
-                createdAt:soli.createdAt
+                id: soli.id,
+                nombre: soli.nombre,
+                empresa: soli.empresa,
+                opcion: soli.opcion,
+                createdAt: soli.createdAt
             }));
             res.status(200).send(solicitudes)
         })
-    }catch(err){
-        res.status(500).json({message:"error :" + err})
+    } catch (err) {
+        res.status(500).json({ message: "error :" + err })
     }
 }
 
 async function obtenerSolicitudContacto(req, res) {
-    try{
-        const {id} = req.params
+    try {
+        const { id } = req.params
 
-        await Contactos.findOne({where:{id:id}}) .then((rows)=>{
+        await Contactos.findOne({ where: { id: id } }).then((rows) => {
             res.status(200).send(rows)
         })
-    }catch(err){
-        res.status(500).json({message:"error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
 async function eliminarSolicitudContacto(req, res) {
-    try{
-        const {id} = req.params
+    try {
+        const { id } = req.params
 
-        await Contactos.destroy({where:{id:id}}).then(()=>{
-            res.status(200).json({message:"Solicitud eliminada"})
-        }).catch((error)=>{
-            res.status(500).json({message:"Error al eliminar solicitud: "+error})
+        await Contactos.destroy({ where: { id: id } }).then(() => {
+            res.status(200).json({ message: "Solicitud eliminada" })
+        }).catch((error) => {
+            res.status(500).json({ message: "Error al eliminar solicitud: " + error })
         })
-    }catch(err){
-        res.status(500).json({message:"Error"})
+    } catch (err) {
+        res.status(500).json({ message: "Error" })
     }
 
 }
@@ -770,7 +810,7 @@ async function eliminarSolicitudContacto(req, res) {
 async function obtenerSolicitudes(req, res) { //obtener solicitudes de trabajo
     try {
 
-        const {division} = req.params
+        const { division } = req.params
 
         await Solicitudes.findAll().then(result => {
             console.log(result)
@@ -801,168 +841,168 @@ async function eliminarSolicitud(req, res) {
 
 //Sucursales
 async function crearSucursal(req, res) {
-    try{
+    try {
 
-        const {nombre,direccion,maps,telefono, division} = req.body
+        const { nombre, direccion, maps, telefono, division } = req.body
 
-        await Sucursales.create({nombre:nombre, direccion:direccion,maps:maps,telefono:telefono, division:division}).then(()=>{
-            res.status(200).json({message:"ok"})
-        }).catch((err)=>{
-            res.status(500).send({message:"error: "+err})
+        await Sucursales.create({ nombre: nombre, direccion: direccion, maps: maps, telefono: telefono, division: division }).then(() => {
+            res.status(200).json({ message: "ok" })
+        }).catch((err) => {
+            res.status(500).send({ message: "error: " + err })
         })
 
 
-    }catch(error){
+    } catch (error) {
         res.status(500).send('error: ' + error)
     }
 }
 
-async function obtenerSucursales(req,res){
-    try{
-        const {division} = req.params
+async function obtenerSucursales(req, res) {
+    try {
+        const { division } = req.params
 
-        await Sucursales.findAll({where:{division:division}}).then((rows)=>{
+        await Sucursales.findAll({ where: { division: division } }).then((rows) => {
             res.status(200).send(rows)
-        }).catch((err)=>{
-            res.status(500).json({message:err})
+        }).catch((err) => {
+            res.status(500).json({ message: err })
         })
-    }catch(err){
-        res.status(500).json({message: "error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
-async function eliminarSucursal(req,res){
-    try{
+async function eliminarSucursal(req, res) {
+    try {
         const id = req.params.id
 
-        await Sucursales.destroy({where:{id:id}}).then(()=>{
-            res.status(200).json({message:"ok"})
+        await Sucursales.destroy({ where: { id: id } }).then(() => {
+            res.status(200).json({ message: "ok" })
         })
 
-    }catch(err){
-        res.status(500).json({message: "error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
-async function modificarSucursal(req,res){
+async function modificarSucursal(req, res) {
 
-    try{
-        const {id, nombre,direccion,maps,telefono} = req.body
+    try {
+        const { id, nombre, direccion, maps, telefono } = req.body
 
-        await Sucursales.update({nombre:nombre, direccion:direccion,maps:maps,telefonos:telefono},{where:{id:id}}).then(()=>{
-            res.status(200).json({message:"ok"})
-        }).catch((err)=>{
-            res.status(500).json({message:"error: "+err})
+        await Sucursales.update({ nombre: nombre, direccion: direccion, maps: maps, telefonos: telefono }, { where: { id: id } }).then(() => {
+            res.status(200).json({ message: "ok" })
+        }).catch((err) => {
+            res.status(500).json({ message: "error: " + err })
         })
 
-    }catch(err){
-        res.status(500).json({message:"error: "+err})
+    } catch (err) {
+        res.status(500).json({ message: "error: " + err })
     }
 }
 
 //IMAGENES SUCURSALES
-async function obtenerImagenSucursal(req,res){
-    try{
-        const {id, main, division} = req.body
+async function obtenerImagenSucursal(req, res) {
+    try {
+        const { id, main, division } = req.body
 
-        if(main === true){
-            await Imagenes_Sucursales.findAll({where:{main:true, division:division}}).then((rows)=>{
+        if (main === true) {
+            await Imagenes_Sucursales.findAll({ where: { main: true, division: division } }).then((rows) => {
                 res.status(200).send(rows)
-            }).catch((err)=>{
-                res.status(500).json({message:err})
+            }).catch((err) => {
+                res.status(500).json({ message: err })
             })
-        }else{
-            await Imagenes_Sucursales.findAll({where:{id_sucursal:id , division:division}}).then((rows)=>{
+        } else {
+            await Imagenes_Sucursales.findAll({ where: { id_sucursal: id, division: division } }).then((rows) => {
                 res.status(200).send(rows)
-            }).catch((err)=>{
-                res.status(500).json({message:err})
+            }).catch((err) => {
+                res.status(500).json({ message: err })
             })
         }
 
-        
-    }catch(err){
-        res.status(500).json({message:"error"})
+
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 
 }
 
-async function agregarImagenSucursal(req,res){
-    try{
-        const {id_sucursal, main, division} = req.body
+async function agregarImagenSucursal(req, res) {
+    try {
+        const { id_sucursal, main, division } = req.body
         const file = req.files[0]
 
-        await Imagenes_Sucursales.create({nombre:file.fieldname, file:  "data:image/*;base64,"+file.buffer.toString('base64'), id_sucursal:id_sucursal, main:Boolean(main), division:division}).then(()=>{
-            res.status(200).json({message:"ok"})
-        }).catch((err)=>{
-            res.status(500).json({message:"error: "+err})
+        await Imagenes_Sucursales.create({ nombre: file.fieldname, file: "data:image/*;base64," + file.buffer.toString('base64'), id_sucursal: id_sucursal, main: Boolean(main), division: division }).then(() => {
+            res.status(200).json({ message: "ok" })
+        }).catch((err) => {
+            res.status(500).json({ message: "error: " + err })
         })
 
-    }catch(err){
-        res.status(500).json({message:"error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 
 }
 
-async function modificarImagenSucursal(req,res){
-    try{
-        const {id, main} = req.body
+async function modificarImagenSucursal(req, res) {
+    try {
+        const { id, main } = req.body
         const file = req.files[0]
 
-        await Imagenes_Sucursales.update({nombre:file.fieldname, file: "data:image/*;base64,"+file.buffer.toString('base64'), main:Boolean(main)},{where:{id:id}}).then(()=>{
-            res.status(200).json({message:"ok"})
-        }).catch((err)=>{
-            res.status(500).json({message:"error: "+err})
+        await Imagenes_Sucursales.update({ nombre: file.fieldname, file: "data:image/*;base64," + file.buffer.toString('base64'), main: Boolean(main) }, { where: { id: id } }).then(() => {
+            res.status(200).json({ message: "ok" })
+        }).catch((err) => {
+            res.status(500).json({ message: "error: " + err })
         })
 
-    }catch(err){
-        res.status(500).json({message:"error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
 //Comunicados
-async function obtenerComunicados(req,res){
-    try{
-        await Comunicados.findAll().then((rows)=>{
+async function obtenerComunicados(req, res) {
+    try {
+        await Comunicados.findAll().then((rows) => {
             res.status(200).send(rows)
-        }).catch((err)=>{
-            res.status(500).json({message:err})
+        }).catch((err) => {
+            res.status(500).json({ message: err })
         })
-    }catch(err){
-        res.status(500).json({message:"error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
-async function crearComunicado(req,res){
-    try{
-        const {titulo, comunicado, link} = req.body
+async function crearComunicado(req, res) {
+    try {
+        const { titulo, comunicado, link } = req.body
 
-        await Comunicados.create({titulo:titulo, comunicado:comunicado, link:link}).then(()=>{
-            res.status(200).json({message:"ok"})
-        }).catch((err)=>{
-            res.status(500).json({message:"error: "+err})
+        await Comunicados.create({ titulo: titulo, comunicado: comunicado, link: link }).then(() => {
+            res.status(200).json({ message: "ok" })
+        }).catch((err) => {
+            res.status(500).json({ message: "error: " + err })
         })
 
-    }catch(err){
-        res.status(500).json({message:"error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 
 }
 
-async function eliminarComunicado(req,res){
-    try{
+async function eliminarComunicado(req, res) {
+    try {
         const id = req.params.id
 
-        await Comunicados.destroy({where:{id:id}}).then(()=>{
-            res.status(200).json({message:"ok"})
+        await Comunicados.destroy({ where: { id: id } }).then(() => {
+            res.status(200).json({ message: "ok" })
         })
 
-    }catch(err){
-        res.status(500).json({message: "error"})
+    } catch (err) {
+        res.status(500).json({ message: "error" })
     }
 }
 
 async function subirArchivo(req, res) {
-    const {origen} = req.body
+    const { origen } = req.body
     const file = req.files[0];
 
     try {
@@ -974,8 +1014,8 @@ async function subirArchivo(req, res) {
             })
         } else {
             console.log("crear")
-            await Archivos.create({ nombre: file.originalname, file: file.buffer.toString('base64'), origen:origen}).then(()=>{
-                res.status(200).json({message:"ok"})
+            await Archivos.create({ nombre: file.originalname, file: file.buffer.toString('base64'), origen: origen }).then(() => {
+                res.status(200).json({ message: "ok" })
             })
         }
     } catch (error) {
@@ -984,13 +1024,13 @@ async function subirArchivo(req, res) {
 }
 
 async function obtenerArchivo(req, res) {
-    const {origen} = req.params
+    const { origen } = req.params
     try {
         const exist = await Archivos.findOne({ where: { origen: origen } })
         if (exist) {
             res.status(200).send(exist)
         } else {
-            res.status(200).send({message:"no existe"})
+            res.status(200).send({ message: "no existe" })
         }
     } catch (error) {
         res.status(500).send('error: ' + error)
